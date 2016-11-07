@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -102,24 +103,30 @@ public class MGridFragment extends Fragment {
     }
 
     public class FetchMoviesTask extends AsyncTask<String,Void,ArrayList<GridItem>>
-    {  @Override
+    {
+        private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
+
+        @Override
     protected ArrayList<GridItem> doInBackground(String... params) {
         try
         {   SharedPreferences preference= PreferenceManager.getDefaultSharedPreferences(context);
             String sort=preference.getString(SpKeys.SORT_KEY,getResources().getString(R.string.sort_default));
             switch(sort)
-            {   case "0":   sort="popularity.desc";
+            {   case "0":   sort="popular";
                 break;
 
-                case "1":   sort="vote_average.desc";
+                case "1":   sort="top_rated";
                     break;
             }
             Uri.Builder reqUri=new Uri.Builder();
-            reqUri.encodedPath("https://api.themoviedb.org/3/discover/movie");
+            reqUri.encodedPath("https://api.themoviedb.org/3/movie/");
+            reqUri.appendPath(sort);
             reqUri.appendQueryParameter("api_key", SpKeys.API_KEY);
-            reqUri.appendQueryParameter("sort_by",sort);
             reqUri.appendQueryParameter("page","1");
             URL reqUrl=new URL(reqUri.toString());
+
+            Log.d(LOG_TAG, "movies Uri  : " + reqUri.toString());
+
             HttpURLConnection con=(HttpURLConnection) reqUrl.openConnection();
             InputStream in=con.getInputStream();
             BufferedReader buff=new BufferedReader(new InputStreamReader(in));
